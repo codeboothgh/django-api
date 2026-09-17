@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.db.models.functions import UUID4, Now
+from django.conf import settings
 
 # Create your models here.
 
@@ -16,7 +17,8 @@ class UserManager(BaseUserManager):
         user = self.model(
             email=email,
             first_name=first_name,
-            last_name=last_name
+            last_name=last_name,
+            **extra_fields,
         )
 
         user.set_password(password)
@@ -77,4 +79,26 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
-    
+
+
+class AbstractFields(models.Model):
+    id = models.UUIDField(
+        db_default=UUID4(),
+        primary_key=True,
+        unique=True
+    )
+    slug = models.SlugField(max_length=500, blank=True, null=True)
+    created_at = models.DateTimeField(
+        db_default=Now()
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        to_field="id",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="%(app_label)s_%(class)s_ownership"
+    )
+
+    class Meta:
+        abstract = True
