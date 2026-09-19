@@ -80,21 +80,25 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
-
+#this are fields that most of the model will have so write them here not repeat those on each model
+# so my model will inherit from this  class 
+# with this ( abstract = True) the AbstractFields will not get it own databse
 class AbstractFields(models.Model):
     id = models.UUIDField(
-        db_default=UUID4(),
+        db_default=UUID4(), # this tells the databse to generate a new uuid when a new record is created
         primary_key=True,
         unique=True
     )
+
+    # a slug is normally a URL-friendly version of something.i want to do something like Toyota corolla will toyota-corolla
     slug = models.SlugField(max_length=500, blank=True, null=True)
     created_at = models.DateTimeField(
         db_default=Now()
     )
-    created_by = models.ForeignKey(
+    created_by = models.ForeignKey( # this stores the user who created this records
         settings.AUTH_USER_MODEL,
         to_field="id",
-        on_delete=models.SET_NULL,
+        on_delete=models.SET_NULL, #If the user who created the record is delete, dont delete the brand.just remove the connection to that user
         blank=True,
         null=True,
         related_name="%(app_label)s_%(class)s_ownership"

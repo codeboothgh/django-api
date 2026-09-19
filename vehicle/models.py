@@ -56,8 +56,8 @@ class VehicleModel(AbstractFields):
     class Meta:
         db_table = "vehicle_model"
 
-        def __str__(self):
-            return self.name
+    def __str__(self):
+        return self.name
 
 
 class VehicleBrand(AbstractFields):
