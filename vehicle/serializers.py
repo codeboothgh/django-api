@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from vehicle.models import VehicleType,VehicleModel,VehicleBrand,VehiclePrice,Currency
+from vehicle.models import Vehicle, VehicleType,VehicleModel,VehicleBrand,VehiclePrice,Currency
 
 class VehicleTypeSerializer(serializers.ModelSerializer):
 
@@ -93,3 +93,29 @@ class CurrencySerializer(serializers.ModelSerializer):
             if len(value.strip()) < 2:
                 raise serializers.ValidationError("Short name must conatin at least two characters")
             return value
+
+class VehicleRequestSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Vehicle
+        fields = [
+            "vehicle_model",
+            "vehicle_type",
+            "brand",
+            "color",
+            "chassis",
+            "mileage",
+            "year"
+        ]
+
+    def validate_year(self, value):
+        import re
+
+        pattern = r"^[1-3][0-9]{3}$"
+
+        match = re.search(pattern, str(value))
+        print(match)
+        if match:
+            return value
+
+        raise serializers.ValidationError("Year format invalid")

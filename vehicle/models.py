@@ -33,6 +33,10 @@ class Vehicle(AbstractFields):
 
     class Meta:
         db_table = "vehicle"
+        permissions = (
+            ('can_read', 'Can read vehicle information'),
+            ('can_write', 'Can create, update or delete vehicle.')
+        )
 
     def __str__(self):
         return f"({self.vehicle_type}) - {self.brand} {self.vehicle_model} {self.year}"
