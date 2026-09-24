@@ -2,14 +2,16 @@ from rest_framework import serializers
 
 from vehicle.models import Vehicle, VehicleType,VehicleModel,VehicleBrand,VehiclePrice,Currency
 
+
+READ_ONLY_FIELDS = ["id", "created_by", "created_at", "slug"]
 class VehicleTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = '__all__'
         model = VehicleType
-        read_only_fields = ["id", "created_by", "created_at", "slug"]
+        read_only_fields = READ_ONLY_FIELDS
 
-    # i want to customize what happen when a new bject is created
+    # i want to customize what happen when a new object is created
     def create(self, validated_data):
         instance = super().create(validated_data)
 
@@ -25,47 +27,63 @@ class VehicleModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = VehicleModel
         fields = "__all__" # include all fields including the one inf=herited from the AbstractField
-        read_only_fields = [ # the user is not allow to change this fields, it meant to be read only
-            "id",
-            "slug",
-            "created_at",
-            "created_by",
-        ]
+        read_only_fields = READ_ONLY_FIELDS
 
-        #since the vehiclemodel has a name which is required we should validate them
-        def validate_name(self, value):
-            if not value.strip():
-                raise serializers.ValidationError("Vehicle model cannot be empty")
-            return value
+    #since the vehiclemodel has a name which is required we should validate them
+    def validate_name(self, value):
+        if not value.strip():
+            raise serializers.ValidationError("Vehicle model cannot be empty")
+        return value
+
+    # slugify the name of the brand
+    def create(self, validated_data):
+        instance = super().create(validated_data)
+
+        name = validated_data.get("name")
+        instance.slug = name.replace(" ", "-").lower()
+        request = self.context.get("request", None)
+        if not request:
+            return instance
+
+        instance.created_by = request.user
+        instance.save()
+
+        return instance
 
 # Vehicle Brand
 class VehicleBrandSerializer(serializers.ModelSerializer):
     class Meta:
         model = VehicleBrand
         fields = "__all__"
-        read_only_fields = [
-            "id",
-            "slug",
-            "created_at",
-            "created_by",
-        ]     
+        read_only_fields = READ_ONLY_FIELDS
 
-        def validate_name(self, value):
-            if not value.strip():
-                raise serializers.ValidationError("Vehicle brand can not be empty")
-            return value
+    def validate_name(self, value):
+        if not value.strip():
+            raise serializers.ValidationError("Vehicle brand can not be empty")
+        return value
+
+    # slugify the name of the brand
+    def create(self, validated_data):
+        instance = super().create(validated_data)
+
+        name = validated_data.get("name")
+        instance.slug = name.replace(" ", "-").lower()
+        request = self.context.get("request", None)
+        if not request:
+            return instance
+        
+        instance.created_by = request.user
+        instance.save()
+        
+        return instance
+
 
 # Vehicle Price      
 class VehiclePriceSerializer(serializers.ModelSerializer):
     class Meta:
         model = VehiclePrice  
         fields = "__all__"
-        read_only_fields = [
-            "id",
-            "slug",
-            "created_at",
-            "created_by",
-        ]
+        read_only_fields = READ_ONLY_FIELDS
 
         def validate_price(self, value):
             if value <= 0 :
@@ -74,6 +92,7 @@ class VehiclePriceSerializer(serializers.ModelSerializer):
 
 #Currency for the prices
 class CurrencySerializer(serializers.ModelSerializer):
+
     class Meta :
         model = Currency
         fields = "__all__"
@@ -84,15 +103,28 @@ class CurrencySerializer(serializers.ModelSerializer):
             "created_by",
         ]
 
-        def validate_currency_code(self,value):
-            #so the model can stop null so we need check if null we return the empty
-            #then most of the country currency shortname is more than one letter, so we check that
-            if value is None:
-                return value
-
-            if len(value.strip()) < 2:
-                raise serializers.ValidationError("Currency code must conatin at least two characters")
+    def validate_currency_code(self,value):
+        #so the model can stop null so we need check if null we return the empty
+        #then most of the country currency shortname is more than one letter, so we check that
+        if value is None:
             return value
+
+        if len(value.strip()) < 2:
+            raise serializers.ValidationError("Currency code must conatin at least two characters")
+        return value
+
+    def create(self, validated_data):
+        instance = super().create(validated_data)
+        # save who creates the currency with request from context
+        request = self.context.get("request", None)
+        if not request:
+            return instance
+
+        instance.created_by = request.user
+        instance.save()
+
+        return instance
+
 
 class VehicleRequestSerializer(serializers.ModelSerializer):
 
@@ -101,7 +133,6 @@ class VehicleRequestSerializer(serializers.ModelSerializer):
         fields = [
             "vehicle_model",
             "vehicle_type",
-            "brand",
             "color",
             "chassis",
             "mileage",
@@ -119,3 +150,16 @@ class VehicleRequestSerializer(serializers.ModelSerializer):
             return value
 
         raise serializers.ValidationError("Year format invalid")
+
+    def validate_color(self, value):
+        return value.capitalize()
+
+    
+class VehicleResponseSerializer(serializers.ModelSerializer):
+    vehicle_model = VehicleModelSerializer(many=False)
+    vehicle_type = VehicleTypeSerializer(many=False)
+
+    class Meta:
+        fields = '__all__'
+        read_only_fields = READ_ONLY_FIELDS
+        model = Vehicle

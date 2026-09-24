@@ -23,9 +23,14 @@ class BatchItem(AbstractFields):
     batch = models.ForeignKey(Batch, related_name="batch_item_batch", on_delete=models.SET_NULL, blank=True, null=True)
     quantity = models.PositiveIntegerField(db_default=0, blank=True, null=True)
     total_cost_price = models.DecimalField(db_default=0.0, decimal_places=2, max_digits=10, blank=True, null=True)
-
+    unit_price = models.ForeignKey(
+        VehiclePrice,
+        related_name="batch_item_cost_price",
+        on_delete=models.SET_NULL,
+        blank=True, null=True
+    )
     @property
-    def unit_price(self):
+    def compute_unit_price(self):
         try:
             unit_price = self.total_cost_price / self.quantity
             return unit_price

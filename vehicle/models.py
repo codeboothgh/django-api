@@ -20,13 +20,6 @@ class Vehicle(AbstractFields):
         null=True
     )
     color = models.CharField(max_length=255, blank=True, null=True)
-    brand = models.ForeignKey(
-        "VehicleBrand",
-        related_name="vehicle_vehicle_brand",
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True
-    )
     mileage = models.PositiveIntegerField(blank=True, null=True, db_default=0)
     year = models.IntegerField(blank=True, null=True)
     chassis = models.CharField(max_length=255, unique=True)
@@ -39,7 +32,7 @@ class Vehicle(AbstractFields):
         )
 
     def __str__(self):
-        return f"({self.vehicle_type}) - {self.brand} {self.vehicle_model} {self.year}"
+        return f"({self.vehicle_type}) - {self.vehicle_model} {self.year}"
 
 
 class VehicleType(AbstractFields):
@@ -56,12 +49,19 @@ class VehicleType(AbstractFields):
 
 class VehicleModel(AbstractFields):
     name = models.CharField(max_length=255)
+    brand = models.ForeignKey(
+        "VehicleBrand",
+        related_name="model_brand",
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True
+    )
 
     class Meta:
         db_table = "vehicle_model"
 
     def __str__(self):
-        return self.name
+        return self.brand.name + " " + self.name
 
 
 class VehicleBrand(AbstractFields):
@@ -70,8 +70,9 @@ class VehicleBrand(AbstractFields):
     class Meta:
         db_table = "vehicle_brand"
 
-        def __str__(self):
-            return self.name
+    def __str__(self):
+        return self.name
+
 
 TYPE = [
     ("SELLING", "Selling Price"),

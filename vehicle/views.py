@@ -2,8 +2,8 @@ from rest_framework.generics import CreateAPIView,ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from user.permissions import AdminPermission, ManagerPermission
 from vehicle.models import VehicleType,VehicleModel,VehicleBrand,VehiclePrice,Currency
-from vehicle.serializers import VehicleRequestSerializer, VehicleTypeSerializer,VehicleModelSerializer,VehicleBrandSerializer,VehiclePriceSerializer,CurrencySerializer
-
+from vehicle.serializers import VehicleResponseSerializer, VehicleRequestSerializer, VehicleTypeSerializer,VehicleModelSerializer,VehicleBrandSerializer,VehiclePriceSerializer,CurrencySerializer
+from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
@@ -19,10 +19,20 @@ class CreateVehicleModel(CreateAPIView):
     permission_classes = [AdminPermission,]
     serializer_class = VehicleModelSerializer  
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"request": self.request})
+        return context  
+
 #Vehicle brand view
 class CreateVehicleBrand(CreateAPIView):
     permission_classes = [AdminPermission,]
-    serializer_class = VehicleBrandSerializer    
+    serializer_class = VehicleBrandSerializer
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"request": self.request})
+        return context    
     
 
 #Vehicle Price View 
@@ -33,7 +43,15 @@ class CreateVehiclePrice(CreateAPIView):
 # Currency for the Prices
 class CreateCurrency(CreateAPIView):
     permission_classes = [AdminPermission,]
-    serializer_class = CurrencySerializer     
+    serializer_class = CurrencySerializer
+
+    # add request to the serializer's context
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"request": self.request})
+        return context
+
+
 
 # ================================================== ListAPIViews=========================================
 class ListVehicleModel(ListAPIView):
@@ -69,5 +87,23 @@ class ListVehicleType(ListAPIView):
 
 
 class CreateVehicle(CreateAPIView):
-    # permission_classes = [ManagerPermission,]
+    permission_classes = [ManagerPermission,]
     serializer_class = VehicleRequestSerializer
+
+    def create(self, request):
+        input_serializer = self.get_serializer(data=request.data)
+
+        input_serializer.is_valid(raise_exception=True)
+
+        vehicle = input_serializer.save()
+
+        vehicle.created_by = self.request.user
+        vehicle.slug = f"{vehicle.vehicle_model.brand.name}-{vehicle.vehicle_model.name}-{vehicle.color}-{vehicle.year}".lower()
+        vehicle.save()
+
+        serializer = VehicleResponseSerializer(vehicle, context=self.get_serializer_context())
+
+        return Response(
+            serializer.data,
+            status=201
+        )
