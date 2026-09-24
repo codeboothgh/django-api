@@ -12,7 +12,7 @@ class VehicleAvailabilityRequestSerializer(serializers.Serializer):
     def validate_country_code(self, value):
 
         try:
-            Currency.objects.get(country_code=value)
+            Currency.objects.get(country_code=value.upper())
             return value
         except:
             raise serializers.ValidationError("Country code provided does not exist in our system")

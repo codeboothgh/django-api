@@ -1,13 +1,13 @@
 from django.urls import path
 
-from vehicle.views import CreateVehicle, CreateVehicleType,CreateVehicleModel,CreateVehicleBrand,CreateVehiclePrice,CreateCurrency,ListVehicleModel,ListVehiclePrice,ListCurrency,ListVehicleBrand,ListVehicleType
+from vehicle.views import *
 
 urlpatterns = [
     path("vehicle-type/create/", CreateVehicleType.as_view()),
     path("vehicle-model/create/", CreateVehicleModel.as_view()),
     path("vehicle-brand/create/", CreateVehicleBrand.as_view()),
     path("vehicle-price/create/", CreateVehiclePrice.as_view()),
-    path("vehicle/create/", CreateVehicle.as_view()),
+    path("create/", CreateVehicle.as_view()),
     path("currency/create/", CreateCurrency.as_view()),
 
     #======================LISAPIView URL ================================

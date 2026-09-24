@@ -20,7 +20,8 @@ from django.urls import path, include
 
 api_v1 = [
     path("user/", include("user.urls")),
-    path("vehicle/", include("vehicle.urls"))
+    path("vehicle/", include("vehicle.urls")),
+    path("sale/", include("sale.urls"))
 ]
 
 urlpatterns = [

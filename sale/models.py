@@ -11,6 +11,13 @@ class Batch(AbstractFields):
     purchase_currency = models.ForeignKey(Currency, related_name="batch_purchase_currency", on_delete=models.SET_NULL, blank=True, null=True)
     selling_currency = models.ForeignKey(Currency, related_name="batch_selling_currency", on_delete=models.SET_NULL, blank=True, null=True)
 
+    class Meta:
+        db_table = "batch"
+
+    def __str__(self):
+        return self.batch_number 
+
+    
 class BatchItem(AbstractFields):
     vehicle = models.ForeignKey(Vehicle, related_name="batch_item_vehicle", on_delete=models.SET_NULL, blank=True, null=True)
     batch = models.ForeignKey(Batch, related_name="batch_item_batch", on_delete=models.SET_NULL, blank=True, null=True)
@@ -24,6 +31,9 @@ class BatchItem(AbstractFields):
             return unit_price
         except:
             return 0
+
+    class Meta:
+        db_table = "batch_item"
 
 
 class Order(AbstractFields):
@@ -44,12 +54,19 @@ class Order(AbstractFields):
     payment_status = models.IntegerField(choices=PAYMENT_STATUS, db_default=0)
     status = models.CharField(choices=STATUS, max_length=255, db_default="PENDING")
 
+    class Meta:
+        db_table = "order"
+
+
 class OrderItem(AbstractFields):
     order = models.ForeignKey(Order, related_name="order_item_order", on_delete=models.CASCADE, blank=True, null=True)
     vehicle = models.ForeignKey(Vehicle, related_name="order_item_vehicle", on_delete=models.SET_NULL, blank=True, null=True)
     selling_price = models.ForeignKey(VehiclePrice, related_name="order_item_selling_price", on_delete=models.SET_NULL, blank=True, null=True)
     actual_selling_price = models.DecimalField(db_default=0.0, decimal_places=2, max_digits=10, blank=True, null=True)
     quantity = models.PositiveIntegerField(db_default=1)
+
+    class Meta:
+        db_table = "order_item"
 
 
 class Payment(AbstractFields):
@@ -58,3 +75,5 @@ class Payment(AbstractFields):
     payment_method = models.CharField(max_length=255, blank=True, null=True)
     currency = models.ForeignKey(Currency, related_name="payment_currency", on_delete=models.SET_NULL, blank=True, null=True)
 
+    class Meta:
+        db_table = "payment"
