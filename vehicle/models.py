@@ -102,10 +102,12 @@ class VehiclePrice(AbstractFields):
 class Currency(AbstractFields):
     sign = models.CharField(max_length=10)
     name = models.CharField(max_length=255)
-    short_name = models.CharField(max_length=255, blank=True, null=True)
+    currency_code = models.CharField(max_length=255, blank=True, null=True)
+    country = models.CharField(max_length=255, blank=True, null=True)
+    country_code = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         db_table = "currency"
 
     def __str__(self):
-        return self.short_name
+        return self.currency_code

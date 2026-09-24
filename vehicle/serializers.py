@@ -84,14 +84,14 @@ class CurrencySerializer(serializers.ModelSerializer):
             "created_by",
         ]
 
-        def validate_short_name(self,value):
+        def validate_currency_code(self,value):
             #so the model can stop null so we need check if null we return the empty
             #then most of the country currency shortname is more than one letter, so we check that
             if value is None:
                 return value
 
             if len(value.strip()) < 2:
-                raise serializers.ValidationError("Short name must conatin at least two characters")
+                raise serializers.ValidationError("Currency code must conatin at least two characters")
             return value
 
 class VehicleRequestSerializer(serializers.ModelSerializer):
