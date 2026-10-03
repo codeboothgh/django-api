@@ -85,10 +85,22 @@ class VehiclePriceSerializer(serializers.ModelSerializer):
         fields = "__all__"
         read_only_fields = READ_ONLY_FIELDS
 
-        def validate_price(self, value):
-            if value <= 0 :
-                raise serializers.ValidationError("Vehicle Price  must be greater than zero")
-            return value
+    def validate_price(self, value):
+        if value <= 0 :
+            raise serializers.ValidationError("Vehicle Price  must be greater than zero")
+        return value
+
+    def create(self, validated_data):
+        instance = super().create(validated_data)
+
+        request = self.context.get("request", None)
+        if not request:
+            return instance
+
+        instance.created_by = request.user
+        instance.save()
+
+        return instance
 
 #Currency for the prices
 class CurrencySerializer(serializers.ModelSerializer):

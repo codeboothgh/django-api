@@ -13,6 +13,7 @@ class Batch(AbstractFields):
 
     class Meta:
         db_table = "batch"
+        ordering = ("-created_at",)
 
     def __str__(self):
         return self.batch_number 

@@ -97,7 +97,7 @@ class VehiclePrice(AbstractFields):
         db_table = "vehicle_price"
 
     def __str__(self):
-        return f"{self.vehicle}, {self.currency} {self.price}"
+        return f"{self.vehicle}, {self.currency} {self.price} - {self.price_type}"
 
 
 class Currency(AbstractFields):

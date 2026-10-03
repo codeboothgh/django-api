@@ -1,12 +1,59 @@
+from django.db import transaction
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
-from sale.models import BatchItem, Order, OrderItem
-from sale.serializers import VehicleAvailabilityRequestSerializer
+from rest_framework.generics import CreateAPIView
+from sale.models import Batch, BatchItem, OrderItem
+from sale.serializers import VehicleAvailabilityRequestSerializer, BatchRequestSerializer
+from user.permissions import ManagerPermission
+from utils.codes import new_batch_number
+from vehicle.models import Currency
 
 # Create your views here.
+class CreateBatch(CreateAPIView):
+    permission_classes = [ManagerPermission,]
+    serializer_class = BatchRequestSerializer
 
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+
+        serializer = BatchRequestSerializer(data=self.request.data)
+
+        serializer.is_valid(raise_exception=True)
+
+        # batch_number = ddmmyyhhmm001
+        previous_batch = None
+        try:
+           previous_batch = Batch.objects.first()
+        except:
+            pass
+
+        batch_number = new_batch_number(previous_batch.batch_number if previous_batch else None)
+
+        validated_data = serializer.validated_data
+
+        print(validated_data)
+
+        batch = Batch.objects.create(
+            batch_number=batch_number,
+            purchase_currency_id=validated_data.get("purchase_currency_code"),
+            selling_currency_id=validated_data.get("selling_currency_code"),
+            created_by=self.request.user
+        )
+
+        BatchItem.objects.bulk_create([
+            BatchItem(
+                batch_id=batch.id,
+                vehicle_id=bi.get("vehicle_id"),
+                quantity=bi.get("quantity"),
+                total_cost_price=bi.get("total_cost_price"),
+                unit_price_id=bi.get("unit_price_id"),
+                created_by=self.request.user
+            ) for bi in validated_data.get("batch_items")
+        ])
+        return Response({"message": "Batch created successfully"}, status=201)
+
+    
 class VehicleAvailability(APIView):
 
     def get(self, request, **kwargs):

@@ -1,8 +1,11 @@
+import uuid
+
 from django.db import models
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.db.models.functions import UUID4, Now
 from django.conf import settings
+from django.utils import timezone
 
 # Create your models here.
 
@@ -86,6 +89,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 class AbstractFields(models.Model):
     id = models.UUIDField(
         db_default=UUID4(), # this tells the databse to generate a new uuid when a new record is created
+        default=uuid.uuid4,
         primary_key=True,
         unique=True
     )
@@ -93,7 +97,8 @@ class AbstractFields(models.Model):
     # a slug is normally a URL-friendly version of something.i want to do something like Toyota corolla will toyota-corolla
     slug = models.SlugField(max_length=500, blank=True, null=True)
     created_at = models.DateTimeField(
-        db_default=Now()
+        db_default=Now(),
+        default=timezone.now
     )
     created_by = models.ForeignKey( # this stores the user who created this records
         settings.AUTH_USER_MODEL,
